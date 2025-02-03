@@ -1,5 +1,5 @@
 {
-  "pluginAlias": "ExampleHomebridgePlugin",
+  "pluginAlias": "LomiPlatform",
   "pluginType": "platform",
   "singular": true,
   "strictValidation": false,
@@ -9,9 +9,22 @@
       "name": {
         "title": "Name",
         "type": "string",
-        "required": true,
-        "default": "Example Dynamic Platform"
+        "default": "Lomi"
+      },
+      "email": {
+        "title": "Email Address",
+        "type": "string"
+      },
+      "password": {
+        "title": "Password",
+        "type": "string"
+      },
+      "deviceNickname": {
+        "type": "string",
+        "description": "Name of your Lomi device"
       }
-    }
+    },
+    "required": ["platform", "email", "password", "deviceNickname"],
+    "additionalProperties": false
   }
 }
