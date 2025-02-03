@@ -1,11 +1,7 @@
-import type { API } from 'homebridge';
+import { API } from 'homebridge';
+import { PLATFORM_NAME } from './settings';
+import { LomiPlatform } from './platform';
 
-import { ExampleHomebridgePlatform } from './platform.js';
-import { PLATFORM_NAME } from './settings.js';
-
-/**
- * This method registers the platform with Homebridge
- */
-export default (api: API) => {
-  api.registerPlatform(PLATFORM_NAME, ExampleHomebridgePlatform);
+export default (homebridge: API): void => {
+  homebridge.registerPlatform(PLATFORM_NAME, LomiPlatform);
 };

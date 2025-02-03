@@ -1,22 +1,24 @@
 {
-  "name": "homebridge-plugin-name",
-  "displayName": "Plugin Name",
+  "name": "homebridge-lomi",
+  "displayName": "Homebridge for Lomi",
   "type": "module",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "private": true,
-  "description": "A short description about what your plugin does.",
-  "author": "Your Name",
-  "license": "Apache-2.0",
-  "homepage": "https://github.com/USERNAME/GITHUB_PROJECT_NAME#readme",
+  "description": "Homebridge plugin for Lomi composter",
+  "author": "Evan Ribbey",
+  "license": "MIT",
+  "homepage": "https://github.com/eribbey/homebridge-lomi#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME.git"
+    "url": "https://github.com/eribbey/homebridge-lomi.git"
   },
   "bugs": {
-    "url": "https://github.com/USERNAME/GITHUB_PROJECT_NAME/issues"
+    "url": "https://github.com/eribbey/homebridge-lomi/issues"
   },
   "keywords": [
-    "homebridge-plugin"
+    "homebridge-plugin",
+    "lomi",
+    "composter"
   ],
   "main": "dist/index.js",
   "engines": {
@@ -33,6 +35,7 @@
     "@eslint/js": "^9.14.0",
     "@types/eslint__js": "^8.42.3",
     "@types/node": "^22.8.6",
+    "@types/node-fetch": "^2.5.12",
     "eslint": "^9.14.0",
     "homebridge": "^2.0.0-beta.0",
     "nodemon": "^3.1.7",
@@ -42,6 +45,8 @@
     "typescript-eslint": "^8.12.2"
   },
   "dependencies": {
-    "homebridge-lib": "^7.1.0"
+    "@liftric/cognito-idp": "^3.1.1",
+    "homebridge-lib": "^7.1.0",
+    "node-fetch": "^2.6.7"
   }
 }
