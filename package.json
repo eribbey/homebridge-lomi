@@ -3,9 +3,8 @@
   "displayName": "Homebridge for Lomi",
   "type": "module",
   "version": "0.1.0",
-  "private": true,
   "description": "Homebridge plugin for Lomi composter",
-  "author": "Evan Ribbey",
+  "author": "eribbey",
   "license": "MIT",
   "homepage": "https://github.com/eribbey/homebridge-lomi#readme",
   "repository": {
