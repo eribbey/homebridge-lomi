@@ -13,8 +13,8 @@ import {
   COGNITO_CLIENT_ID,
   USER_DEVICES_ENDPOINT,
   LomiPlatformConfig,
-} from './settings';
-import { LomiPlatformAccessory } from './platformAccessory';
+} from './settings.js';
+import { LomiPlatformAccessory } from './platformAccessory.js';
 import fetch from 'node-fetch';
 
 interface CognitoAuthResponse {

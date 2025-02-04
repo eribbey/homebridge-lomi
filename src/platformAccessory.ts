@@ -1,6 +1,5 @@
 import { Service, PlatformAccessory } from 'homebridge';
-import { LomiPlatform } from './platform';
-import { DeviceEntry } from './platform';
+import { LomiPlatform, DeviceEntry } from './platform.js';
 
 export class LomiPlatformAccessory {
   private service: Service;
