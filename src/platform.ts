@@ -175,7 +175,8 @@ export class LomiPlatform implements DynamicPlatformPlugin {
         );
       }
       this.log.debug('LomiPlatform: Cognito login successful.');
-      return data.AuthenticationResult.AccessToken;
+      // Use the IdToken for subsequent API calls instead of the AccessToken.
+      return data.AuthenticationResult.IdToken;
     } catch (error: unknown) {
       this.log.error('LomiPlatform: Exception during Cognito login:', error);
       throw error;
