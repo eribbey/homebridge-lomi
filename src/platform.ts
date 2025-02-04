@@ -84,7 +84,7 @@ export class LomiPlatform implements DynamicPlatformPlugin {
     public readonly config: LomiPlatformConfig,
     public readonly api: API,
   ) {
-    this.log.debug('LomiPlatform Init');
+    this.log.debug('LomiPlatform: Initializing platform...');
     this.Service = api.hap.Service;
     this.Characteristic = api.hap.Characteristic;
 
@@ -94,8 +94,10 @@ export class LomiPlatform implements DynamicPlatformPlugin {
 
     // When Homebridge has finished launching, initialize the platform.
     this.api.on('didFinishLaunching', () => {
-      this.log.debug('DidFinishLaunching');
-      this.init();
+      this.log.debug('LomiPlatform: didFinishLaunching event received.');
+      this.init().catch((error: unknown) => {
+        this.log.error('LomiPlatform: Initialization error:', error);
+      });
     });
   }
 
@@ -103,24 +105,28 @@ export class LomiPlatform implements DynamicPlatformPlugin {
    * This method is called when cached accessories are loaded from disk.
    */
   configureAccessory(accessory: PlatformAccessory): void {
-    this.log.info('Loading accessory from cache: ' + accessory.displayName);
+    this.log.info('LomiPlatform: Loading accessory from cache: ' + accessory.displayName);
     this.accessories.push(accessory);
   }
 
   async init(): Promise<void> {
     try {
+      this.log.debug('LomiPlatform: Starting initialization...');
       // Log in via Cognito to get the bearer token.
       this.token = await this.login();
+      this.log.debug('LomiPlatform: Token received.');
       // Fetch all devices registered to this account.
       const devices = await this.fetchDevices();
+      this.log.debug(`LomiPlatform: Retrieved ${devices.length} device(s) from API.`);
       // Select the device matching the configured nickname.
       const selectedDevice = devices.find(
         (entry) => entry.userDevice.nickname === this.deviceNickname,
       );
       if (!selectedDevice) {
-        this.log.warn(`No device found with nickname: ${this.deviceNickname}`);
+        this.log.warn(`LomiPlatform: No device found with nickname: ${this.deviceNickname}`);
         return;
       }
+      this.log.debug(`LomiPlatform: Device "${selectedDevice.userDevice.nickname}" selected.`);
       // Create a unique identifier for the accessory based on the deviceId.
       const uuid = this.api.hap.uuid.generate(selectedDevice.userDevice.deviceId);
       const accessory = new this.api.platformAccessory(
@@ -131,13 +137,14 @@ export class LomiPlatform implements DynamicPlatformPlugin {
       new LomiPlatformAccessory(this, accessory, selectedDevice, this.token);
       // Register the accessory with Homebridge.
       this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
+      this.log.info(`LomiPlatform: Registered accessory for device "${selectedDevice.userDevice.nickname}".`);
     } catch (error: unknown) {
-      this.log.error('Error initializing Lomi platform:', error);
+      this.log.error('LomiPlatform: Error during initialization:', error);
     }
   }
 
   async login(): Promise<string> {
-    this.log.debug('Logging in to Cognito...');
+    this.log.debug('LomiPlatform: Logging in to Cognito...');
     const endpoint = `https://cognito-idp.${COGNITO_REGION}.amazonaws.com/`;
     const headers = {
       'Content-Type': 'application/x-amz-json-1.1',
@@ -152,46 +159,68 @@ export class LomiPlatform implements DynamicPlatformPlugin {
       },
     };
 
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body),
-    });
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+      });
+      const data: CognitoAuthResponse = await response.json();
 
-    const data: CognitoAuthResponse = await response.json();
-
-    if (!response.ok || !data.AuthenticationResult) {
-      throw new Error(
-        `Authentication failed: ${data.__type || response.statusText} ${
-          data.Message ? '- ' + data.Message : ''
-        }`,
-      );
+      if (!response.ok || !data.AuthenticationResult) {
+        const errorInfo = data.Message || response.statusText;
+        this.log.error(`LomiPlatform: Cognito login failed with status ${response.status}: ${errorInfo}`);
+        throw new Error(
+          `Authentication failed: ${data.__type || response.statusText} ${data.Message ? '- ' + data.Message : ''}`,
+        );
+      }
+      this.log.debug('LomiPlatform: Cognito login successful.');
+      return data.AuthenticationResult.AccessToken;
+    } catch (error: unknown) {
+      this.log.error('LomiPlatform: Exception during Cognito login:', error);
+      throw error;
     }
-
-    this.log.debug('Cognito login successful.');
-    return data.AuthenticationResult.AccessToken;
   }
 
   async fetchDevices(): Promise<DeviceEntry[]> {
     if (!this.token) {
-      throw new Error('No token available');
+      throw new Error('LomiPlatform: No token available. Cannot fetch devices.');
     }
-    const response = await fetch(USER_DEVICES_ENDPOINT, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-        'Content-Type': 'application/json',
-      },
-    });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch devices: ${response.status}`);
+    try {
+      this.log.debug('LomiPlatform: Fetching devices from API...');
+      const response = await fetch(USER_DEVICES_ENDPOINT, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        this.log.error(`LomiPlatform: Failed to fetch devices. Status ${response.status}: ${errorText}`);
+        throw new Error(`Failed to fetch devices: ${response.status}`);
+      }
+      const data: UserDevicesResponse = await response.json();
+      this.log.debug('LomiPlatform: Devices fetched successfully.');
+      return data.result;
+    } catch (error: unknown) {
+      this.log.error('LomiPlatform: Exception during fetchDevices:', error);
+      throw error;
     }
-    const data: UserDevicesResponse = await response.json();
-    return data.result;
   }
 
   async refreshDeviceStatus(deviceId: string): Promise<DeviceEntry | undefined> {
-    const devices = await this.fetchDevices();
-    return devices.find((entry) => entry.userDevice.deviceId === deviceId);
+    try {
+      this.log.debug(`LomiPlatform: Refreshing status for device ${deviceId}...`);
+      const devices = await this.fetchDevices();
+      const entry = devices.find((entry) => entry.userDevice.deviceId === deviceId);
+      if (!entry) {
+        this.log.warn(`LomiPlatform: Device with ID ${deviceId} not found during refresh.`);
+      }
+      return entry;
+    } catch (error: unknown) {
+      this.log.error(`LomiPlatform: Error refreshing device status for ${deviceId}:`, error);
+      return undefined;
+    }
   }
 }

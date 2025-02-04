@@ -1,30 +1,40 @@
 {
-  "pluginAlias": "LomiPlatform",
-  "pluginType": "platform",
-  "singular": true,
-  "strictValidation": false,
-  "schema": {
-    "type": "object",
-    "properties": {
-      "name": {
-        "title": "Name",
-        "type": "string",
-        "default": "Lomi"
-      },
-      "email": {
-        "title": "Email Address",
-        "type": "string"
-      },
-      "password": {
-        "title": "Password",
-        "type": "string"
-      },
-      "deviceNickname": {
-        "type": "string",
-        "description": "Name of your Lomi device"
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Homebridge Lomi Platform Plugin Config Schema",
+  "type": "object",
+  "properties": {
+    "platforms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "platform": {
+            "type": "string",
+            "const": "LomiPlatform",
+            "description": "The platform identifier, must be 'LomiPlatform'."
+          },
+          "name": {
+            "type": "string",
+            "description": "Optional name for the platform accessory."
+          },
+          "email": {
+            "type": "string",
+            "description": "Your email address for Cognito authentication."
+          },
+          "password": {
+            "type": "string",
+            "description": "Your password for Cognito authentication."
+          },
+          "deviceNickname": {
+            "type": "string",
+            "description": "The nickname of the Lomi device to display."
+          }
+        },
+        "required": ["platform", "email", "password", "deviceNickname"],
+        "additionalProperties": false
       }
-    },
-    "required": ["platform", "email", "password", "deviceNickname"],
-    "additionalProperties": false
-  }
+    }
+  },
+  "required": ["platforms"],
+  "additionalProperties": false
 }
